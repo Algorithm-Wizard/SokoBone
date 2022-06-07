@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=2]
+[gd_scene load_steps=8 format=2]
 
 [ext_resource path="res://Level.gd" type="Script" id=1]
 [ext_resource path="res://dirt.png" type="Texture" id=2]
@@ -6,7 +6,6 @@
 [ext_resource path="res://Goals.tscn" type="PackedScene" id=4]
 [ext_resource path="res://theme.tres" type="Theme" id=5]
 [ext_resource path="res://Player.tscn" type="PackedScene" id=6]
-[ext_resource path="res://Crates.tscn" type="PackedScene" id=7]
 [ext_resource path="res://Credits.gd" type="Script" id=8]
 
 [node name="Level" type="Node2D"]
@@ -24,7 +23,7 @@ region_rect = Rect2( 0, 0, 64, 64 )
 
 [node name="Stone" parent="." instance=ExtResource( 3 )]
 
-[node name="Crates" parent="." instance=ExtResource( 7 )]
+[node name="Crates" type="Node2D" parent="."]
 
 [node name="Goals" parent="." instance=ExtResource( 4 )]
 

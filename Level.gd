@@ -3,10 +3,9 @@ extends Node2D
 const TILESIZE = 64
 
 export(float) var speed :float = 2
-export(float) var pushMult :float = .8
+export(float) var pushMult :float = .5
 
 enum States {READY, MOVING, QUEUED}
-enum Face {NORTH, SOUTH, EAST, WEST, NONE}
 
 var boxes := []
 var moves := 0
@@ -17,77 +16,94 @@ var playerPos := Vector2.ZERO
 var walking = false
 var currLevel = 0
 var state = States.READY
-var moveQ = Face.NONE
+var moveQ := Vector2()
 var moveL := "idle_s"
 
-onready var background :Sprite = $Dirt
+onready var player :AnimatedSprite = $Player
 onready var foreground :TileMap = $Stone
+onready var background :Sprite = $Dirt
 onready var goals :TileMap = $Goals
 onready var score :Label = $UI/Score
 onready var crates :Node2D = $Crates
 onready var Crate :PackedScene = preload("res://Crate.tscn")
-onready var player :AnimatedSprite = $Player
 onready var tween :Tween= $Tween
 
 func _ready():
 	startLevel(currLevel)
 
 func _process(delta):
-	var direction = Face.NONE
+	var direction = Vector2.ZERO
 	if Input.is_action_just_pressed("ui_down"):
-		direction = Face.SOUTH
+		direction = Vector2.DOWN
 	elif Input.is_action_just_pressed("ui_up"):
-		direction = Face.NORTH
+		direction = Vector2.UP
 	elif Input.is_action_just_pressed("ui_left"):
-		direction = Face.WEST
+		direction = Vector2.LEFT
 	elif Input.is_action_just_pressed("ui_right"):
-		direction = Face.EAST
-	if direction != Face.NONE:
+		direction = Vector2.RIGHT
+	if direction != Vector2.ZERO:
 		movePlayer(direction)
 
-func movePlayer(direction):
-	player.speed_scale = speed
+func movePlayer(direction :Vector2):
 	match(state):
 		States.READY:
-			state = States.MOVING
-			var next := playerPos
+			var walk :String
+			var idle :String
 			match(direction):
-				Face.SOUTH:
-					if canMove(Vector2.DOWN):
-						next += Vector2.DOWN
-						player.play("walk_s")
-						moveL = "idle_s"
-				Face.NORTH:
-					next += Vector2.UP
-					player.play("walk_n")
-					moveL = "idle_n"
-				Face.WEST:
-					next += Vector2.LEFT
-					player.play("walk_w")
-					moveL = "idle_w"
-				Face.EAST:
-					next += Vector2.RIGHT
-					player.play("walk_e")
-					moveL = "idle_e"
-			tween.interpolate_property(player, "position", playerPos * TILESIZE, next * TILESIZE, 1 / speed)
-			tween.start()
-			playerPos = next
+				Vector2.UP:
+					walk = "walk_n"
+					idle = "idle_n"
+				Vector2.DOWN:
+					walk = "walk_s"
+					idle = "idle_s"
+				Vector2.LEFT:
+					walk = "walk_w"
+					idle = "idle_w"
+				Vector2.RIGHT:
+					walk = "walk_e"
+					idle = "idle_e"
+				_:
+					return
+			var next := playerPos + direction
+			var ccrate = getCratev(next)
+			var cnext = next + direction
+			if isWall(next):
+				player.play(idle)
+			elif ccrate and isWall(cnext):
+				player.play(idle)
+			elif ccrate and getCratev(cnext):
+				player.play(idle)
+			else:
+				if ccrate:
+					player.speed_scale = speed * pushMult
+					tween.interpolate_property(ccrate, "position", next * TILESIZE, cnext * TILESIZE, 1 / player.speed_scale)
+					boxes[cnext.y][cnext.x] = ccrate
+					boxes[next.y][next.x] = null
+					moves += 1
+					updateScore()
+				else:
+					player.speed_scale = speed
+				state = States.MOVING
+				player.play(walk)
+				moveL = idle
+				tween.interpolate_property(player, "position", playerPos * TILESIZE, next * TILESIZE, 1 / player.speed_scale)
+				tween.start()
+				playerPos = next
 		States.MOVING:
 			state = States.QUEUED
 			moveQ = direction
 
-func canMove(direction :Vector2)->bool:
-	var dest := playerPos + direction
-	if isWall(dest):
-		return false
-	return true
-
-func isWall(pos :Vector2)->bool:
+func isWall(pos :Vector2) -> bool:
 	if pos.x < 0 or pos.y < 0:
 		return true
 	if pos.x >= width or pos.y >= height:
 		return true
-	return false
+	return foreground.get_cellv(pos) == Stone.WALL
+
+func getCratev(pos :Vector2) -> Sprite:
+	if pos.x >= 0 and pos.x < width and pos.y >= 0 and pos.y < height:
+		return boxes[pos.y][pos.x]
+	return null
 
 func _on_Tween_tween_completed(object, key):
 	if state == States.QUEUED:
@@ -97,13 +113,16 @@ func _on_Tween_tween_completed(object, key):
 		player.play(moveL)
 		state = States.READY
 
+func updateScore():
+	score.text = "Level %d\nMoves %d" % [(currLevel + 1), moves]
+
 func startLevel(level :int):
 	tween.remove_all()
 	state = States.READY
 	moves = 0
 	empty = 0
 	playerPos = Vector2.ZERO
-	score.text = "Level %d\nMoves %d" % [(currLevel + 1), moves]
+	updateScore()
 	foreground.clear()
 	goals.clear()
 	for row in boxes:
@@ -115,11 +134,12 @@ func startLevel(level :int):
 	var data = LevelData.DATA[level]
 	width = 0
 	height = data.size()
+	boxes.resize(height)
 	for row in data:
 		width = max(width, row.length())
-		boxes.append([])
 	background.region_rect.size = TILESIZE * Vector2(width, height)
 	for row in height:
+		boxes[row] = []
 		boxes[row].resize(width)
 		var line:String = data[row]
 		line += " ".repeat(width - line.length())
