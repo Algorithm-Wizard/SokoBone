@@ -79,6 +79,12 @@ func movePlayer(direction :Vector2):
 					tween.interpolate_property(ccrate, "position", next * TILESIZE, cnext * TILESIZE, 1 / player.speed_scale)
 					boxes[cnext.y][cnext.x] = ccrate
 					boxes[next.y][next.x] = null
+					if goals.get_cellv(next) == Goals.FULL:
+						goals.set_cellv(next, Goals.EMPTY)
+						empty += 1
+					if goals.get_cellv(cnext) == Goals.EMPTY:
+						goals.set_cellv(cnext, Goals.FULL)
+						empty -= 1
 					moves += 1
 					updateScore()
 				else:
@@ -106,6 +112,8 @@ func getCratev(pos :Vector2) -> Sprite:
 	return null
 
 func _on_Tween_tween_completed(object, key):
+	if object != player:
+		return
 	if state == States.QUEUED:
 		state = States.READY
 		movePlayer(moveQ)
@@ -114,7 +122,7 @@ func _on_Tween_tween_completed(object, key):
 		state = States.READY
 
 func updateScore():
-	score.text = "Level %d\nMoves %d" % [(currLevel + 1), moves]
+	score.text = "Level %d\nMoves %d\nOpen %d" % [(currLevel + 1), moves, empty]
 
 func startLevel(level :int):
 	tween.remove_all()
@@ -122,7 +130,6 @@ func startLevel(level :int):
 	moves = 0
 	empty = 0
 	playerPos = Vector2.ZERO
-	updateScore()
 	foreground.clear()
 	goals.clear()
 	for row in boxes:
@@ -162,6 +169,7 @@ func startLevel(level :int):
 				goals.set_cell(col, row, Goals.FULL)
 	player.position = playerPos * TILESIZE
 	floorFill(playerPos.x, playerPos.y)
+	updateScore()
 
 func floorFill(x :int, y :int):
 	var empty = TileMap.INVALID_CELL
