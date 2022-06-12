@@ -31,19 +31,6 @@ onready var tween :Tween= $Tween
 func _ready():
 	startLevel(currLevel)
 
-func _process(delta):
-	var direction = Vector2.ZERO
-	if Input.is_action_just_pressed("ui_down"):
-		direction = Vector2.DOWN
-	elif Input.is_action_just_pressed("ui_up"):
-		direction = Vector2.UP
-	elif Input.is_action_just_pressed("ui_left"):
-		direction = Vector2.LEFT
-	elif Input.is_action_just_pressed("ui_right"):
-		direction = Vector2.RIGHT
-	if direction != Vector2.ZERO:
-		movePlayer(direction)
-
 func movePlayer(direction :Vector2):
 	match(state):
 		States.READY:
@@ -196,3 +183,6 @@ func _on_Prev_pressed():
 	currLevel += LevelData.DATA.size() - 1
 	currLevel %= LevelData.DATA.size()
 	startLevel(currLevel)
+
+func _on_Controls_pressed(direction :Vector2):
+	movePlayer(direction)

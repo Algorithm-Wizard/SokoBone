@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=2]
+[gd_scene load_steps=9 format=2]
 
 [ext_resource path="res://Level.gd" type="Script" id=1]
 [ext_resource path="res://dirt.png" type="Texture" id=2]
@@ -6,6 +6,7 @@
 [ext_resource path="res://Goals.tscn" type="PackedScene" id=4]
 [ext_resource path="res://theme.tres" type="Theme" id=5]
 [ext_resource path="res://Player.tscn" type="PackedScene" id=6]
+[ext_resource path="res://Controls.tscn" type="PackedScene" id=7]
 [ext_resource path="res://Credits.gd" type="Script" id=8]
 
 [node name="Level" type="Node2D"]
@@ -84,8 +85,12 @@ wait_time = 15.0
 one_shot = true
 autostart = true
 
+[node name="Controls" parent="UI" instance=ExtResource( 7 )]
+position = Vector2( 576, 0 )
+
 [connection signal="tween_completed" from="Tween" to="." method="_on_Tween_tween_completed"]
 [connection signal="pressed" from="UI/Reset" to="." method="_on_Reset_pressed"]
 [connection signal="pressed" from="UI/Next" to="." method="_on_Next_pressed"]
 [connection signal="pressed" from="UI/Prev" to="." method="_on_Prev_pressed"]
 [connection signal="timeout" from="UI/Credits/Timer" to="UI/Credits" method="_on_Timer_timeout"]
+[connection signal="pressed" from="UI/Controls" to="." method="_on_Controls_pressed"]

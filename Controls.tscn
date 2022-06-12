@@ -1,0 +1,47 @@
+[gd_scene load_steps=7 format=2]
+
+[ext_resource path="res://controls256.png" type="Texture" id=1]
+[ext_resource path="res://Controls.gd" type="Script" id=2]
+
+[sub_resource type="CircleShape2D" id=4]
+radius = 39.0
+
+[sub_resource type="CircleShape2D" id=1]
+radius = 39.0
+
+[sub_resource type="CircleShape2D" id=3]
+radius = 39.0
+
+[sub_resource type="CircleShape2D" id=2]
+radius = 39.0
+
+[node name="Controls" type="Node2D"]
+script = ExtResource( 2 )
+
+[node name="Arrows" type="Sprite" parent="."]
+modulate = Color( 1, 1, 1, 0.498039 )
+texture = ExtResource( 1 )
+centered = false
+hframes = 5
+
+[node name="Selection" type="Area2D" parent="."]
+
+[node name="East" type="CollisionShape2D" parent="Selection"]
+position = Vector2( 210, 127.5 )
+shape = SubResource( 4 )
+
+[node name="North" type="CollisionShape2D" parent="Selection"]
+position = Vector2( 128, 46 )
+shape = SubResource( 1 )
+
+[node name="West" type="CollisionShape2D" parent="Selection"]
+position = Vector2( 46, 127.5 )
+shape = SubResource( 3 )
+
+[node name="South" type="CollisionShape2D" parent="Selection"]
+position = Vector2( 127.5, 210 )
+shape = SubResource( 2 )
+
+[connection signal="input_event" from="Selection" to="." method="_on_Selection_input_event"]
+[connection signal="mouse_entered" from="Selection" to="." method="_on_Selection_mouse_entered"]
+[connection signal="mouse_exited" from="Selection" to="." method="_on_Selection_mouse_exited"]

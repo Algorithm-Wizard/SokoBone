@@ -6,4 +6,3 @@
 
 [node name="Level" parent="." instance=ExtResource( 2 )]
 speed = 4.0
-pushMult = 0.5
